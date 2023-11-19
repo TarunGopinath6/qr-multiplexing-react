@@ -7,10 +7,12 @@ import {
   MDBBtn,
   MDBFooter,
   MDBIcon,
+  MDBInput,
 } from "mdb-react-ui-kit";
 
 const ImageUploader = () => {
   const [image, setImage] = useState(null);
+  const [resultData, setResultData] = useState([]);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -21,10 +23,36 @@ const ImageUploader = () => {
       reader.onloadend = () => {
         // Handle the uploaded image
         setImage(reader.result);
+        setResultData([]);
       };
 
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleEncodeSubmit = (imageData) => {
+    fetch("http://192.168.1.6:5000/scan_qr", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ key: image + imageData }),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then((data) => {
+        // Handle the data from the response
+        console.log("Success:", data);
+        setResultData(data["key"]);
+      })
+      .catch((error) => {
+        // Handle errors
+        console.error("Error:", error);
+      });
   };
 
   return (
@@ -56,12 +84,54 @@ const ImageUploader = () => {
           <MDBBtn class="btn btn-primary w-100">UPLOAD</MDBBtn>
         </MDBRow>
         <MDBRow class="d-flex m-0 p-0">
-          <MDBCol lg="3 w-100">a</MDBCol>
-          <MDBCol lg="3 w-100">b</MDBCol>
-          <MDBCol lg="3 w-100">v</MDBCol>
-          <MDBCol lg="3 w-100">d</MDBCol>
+          <MDBCol
+            lg="3 w-100"
+            onClick={() => {
+              handleEncodeSubmit("0");
+            }}
+            style={{ color: "white" }}
+          >
+            a
+          </MDBCol>
+          <MDBCol
+            lg="3 w-100"
+            onClick={() => {
+              handleEncodeSubmit("1");
+            }}
+            style={{ color: "white" }}
+          >
+            b
+          </MDBCol>
+          <MDBCol
+            lg="3 w-100"
+            onClick={() => {
+              handleEncodeSubmit("2");
+            }}
+            style={{ color: "white" }}
+          >
+            c
+          </MDBCol>
+          <MDBCol
+            lg="3 w-100"
+            onClick={() => {
+              handleEncodeSubmit("3");
+            }}
+            style={{ color: "white" }}
+          >
+            d
+          </MDBCol>
         </MDBRow>
       </MDBContainer>
+
+      {resultData.map((textField, index) => (
+        <div key={index} className="mb-4">
+          <MDBRow class="d-flex justify-content-evenly">
+            <MDBCol size="10">
+              <MDBInput type="text" value={textField} disabled />
+            </MDBCol>
+          </MDBRow>
+        </div>
+      ))}
 
       <MDBContainer>
         <MDBFooter
